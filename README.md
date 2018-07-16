@@ -22,6 +22,22 @@ Android 面试知识收集及整理，主要包含下面几部分：Java 基础�
 
 ## 6.网络协议相关
 
+## 7.others
+
+[AndroidInterview-Q-A](https://github.com/JackyAndroid/AndroidInterview-Q-A)
+
+[android-interview-questions](https://github.com/MindorksOpenSource/android-interview-questions)
+
+[android_interview](https://github.com/LRH1993/android_interview)
+
+[android-interview-questions-cn](https://github.com/stormzhang/android-interview-questions-cn)
+
+[android-interview](https://github.com/guoxiaoxing/android-interview)
+
+[leetcode](https://github.com/gouthampradhan/leetcode)
+
+[blog_backups](https://github.com/crazyandcoder/blog_backups)
+
 ## License
 
 android-interview-collections project is [MIT licensed](https://github.com/xinpengfei520/android-interview-collections/blob/master/LICENSE).
