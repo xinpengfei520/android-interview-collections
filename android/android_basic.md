@@ -109,10 +109,10 @@ Service是一个服务，他不关联任何的用户界面，它在后台运行�
 
 ### 4.3 启动方式
 
- - 一般启动
- - 绑定启动
+ - 一般启动：通过 startService 会首先调用 onCreate() -> onStartCommand() 然后就会处于运行状态，stopService的时候就会调用 onDestroy()，如果是调用者自己退出而没有调用stopService的话，那么Service会一直在后台运行；
+ - 绑定启动：首先会调用onCreate() -> onBind()，这个时候调用者和Service绑定在了一起，调用者退出了，Service 就会调用 onUnbind -> onDestroy() 方法，所谓绑定就是一起共存亡了，调用者也可以调用 unbindService来停止服务，这时候Service就会调用 onUnbind() -> onDestroy()方法；
 
-bind方式可以实现Activity 向Service传递数据，反之，Service可以通过onBind();将数据返回给Activity.
+Activity 通过 bindService(Intent service,ServiceConnection conn,int flags) 跟 Service 进行绑定，当绑定成功的时候 Service 会将代理对象通过回调的形式传给 conn，这样我们就拿到了 Service 提供的服务代理对象，bind方式可以实现Activity 向Service传递数据，反之，Service可以通过onBind();将数据返回给Activity。
 
 ### 4.4 Service中可以谈对话框和吐司吗？
 
@@ -134,6 +134,86 @@ IntentService 是 Service 的子类，它比普通的Service增加了额外的�
 2. 都是Context 的子类 ContextWrapper的子类，Activity负责用户界面的显示和交互，Service负责后台任务的处理；
 3. Activity 和 Service通过 Intent来传递数据，因此Intent可以说是他们之间通信的使者；
 
+### 4.7 在Service 中新开线程和 Activity 直接新开线程的区别？
 
+1. 直接在Activity 中新开一条线程来做耗时操作，当该Activity 退出到桌面或其他情况时将成为一个背景进程；
+2. 在Service中新启动线程，则此时Android会依据进程中当前活跃组件的重要程度，将其判断为服务进程，优先级比 1 高；
+
+## 5.BroadcastReceiver
+
+广播接收器适用于接收系统广播通知用的，例如 SD 卡的挂载，手机重启，电量变化，来电，短信等，这些都是通过广播来启动后台服务，避免被杀死，电量变化的广播等必须动态注册。
+
+### 5.1 分类
+
+- 有序广播：广播可以被中断，数据可以被修改，指定接收者的广播是不可以被拦截掉的，一般调用abortBroadcast();
+- 无序广播：不可以被终止，数据不可以被修改；
+
+### 5.2 注册方式
+
+- 静态注册：在 AndroidManifest.xml 文件中进行注册，当 APP 退出后，Receiver 仍然可以接收到广播并且进行相应的处理；
+- 动态注册：在代码中注册，当app 退出后，也就没有办法收到广播了，动态注册时要注意避免内存泄漏，即在onDestroy中调用解注册广播的方法；
+
+### 5.3 生命周期
+
+1. 广播接受者的生命周期是非常短暂的，在接收广播的时候创建，onReceive()方法结束之后销毁；
+2. 广播接收者中不可以做一些耗时的工作，否则系统会弹出 ANR 对话框；
+3. 最好也不要在广播接受者中创建子线程做耗时的工作，因为广播接受者被销毁后进程就成了空进程，很容易被系统杀掉；
+4. 耗时较长的工作最好放在服务中完成；
+
+## 6.ContentProvider
+
+ContentProvider 翻译过来就是内容提供者的意思，默认情况下，一个应用的数据库是私有的，也就说其他应用不可以访问，我们要想让其他应用访问我们数据库的表，我们可以通过ContentProvider来将自己应用的数据库表暴露给外面调用，也就说ContentProvider是应用程序间共享数据的接口，ContentProvider是一个抽象类，必须要创建一个自定义类继承于它，然后重写query、insert、update、delete等方法。
+
+### 6.1 为什么要用它？和sql的实现上有什么差别？
+
+ - ContentProvider 屏蔽了数据存储的细节，内部实现对用户完全透明，用户只需要关心操作数据的uri就可以了，ContentProvider 可以实现不同app 之间共享；
+ - Sql 也有增删改查的方法，但是 sql 只能查询本应用下的数据库，而 ContentProvider 还可以去增删改查本地文件.xml 文件的读取等；
+
+### 6.2 ContentProvider、ContentResolver、ContentObserver
+
+- ContentProvider：内容提供者，对外提供数据；
+- ContentResolver：内容解析者，用于获取提供者提供的数据；
+- ContentObserver：内容监听器，可以监听数据的改变状态；
+
+## 7.AIDL 
+
+AIDL 是Android interface definition language 的简称，它是一种接口定义语言，用来解决进程间通信的，它可以生成在 Android 设备上两个进程之间进行通信(IPC)的代码，一般用于在一个进程中调用另一个进程中Service对象的操作。
+
+## 8.组件间通信
+
+1. 通过bundle 设置参数；
+2. 通过调用接口；
+3. 将数据持久化(SP/sql/文件等)保存到本地，然后再读取；
+4. EventBus 通信；
+5. ...
+
+## 9.Fragment
+
+Fragment 翻译过来就是碎片的意思，我们可以灵活的使用它来实现各种页面的切换等操作，Fragment 一般都是需要一个容器的，一般是FrameLayout，它是依赖于 Activity的；
+
+### 9.1 Fragment的生命周期
+
+onAttach() -> onCreate() -> onCreateView() -> onActivityCreated() -> onStart() -> onResume() -> onPause() -> onStop() -> onDestroyView() -> onDestroy() -> onDetach();
+
+### 9.2 replace & add 区别
+
+add 的时候是把所有的 Framgent 一层一层的叠加到了 FrameLayout 上了，而 replace 的话首先将该容器中的其他 Fragment 去除掉，然后将当前的 Fragment 添加到容器中。
+
+### 9.3 Fragment 如何实现类似 Activity 栈的压栈和出栈效果？
+
+Fragment 的事务管理器内部维持了一个双向链表结构，该结构可以记录我们每次 add 的 Fragment 和 replace 的 Fragment,然后当我们点击 back 的时候会自动帮我们实现退栈的操作。
+
+入栈：transaction.addToBackStack("name");
+
+### 9.4 如何切换 Fragment 不重新实例化
+
+replace 这个方法只是在上一个 Fragment 不再需要时才用的简便方法，正确的切换方式是 add,切换时 hide,add 另一个Fragment,再次切换时，只需hide 当前，show 另一个即可，这样就能做到 Fragment 在切换时不重新实例化。
+
+### 9.5 FragmentPagerAdapter 与 FragmentStatePagerAdapter 的区别？
+
+- FragmentPagerAdapter:该类中的每一个生成的 Fragment 都将保存在内存中，因此适用于那些相对静态的页面，数量比较少的那种；
+- FragmentStatePagerAdapter：该 PagerAdapter 的实现将只保留当前页面，当页面离开视线后，就会被消除，释放其资源；这么实现的好处就是当拥有大量的页面时，不必在内存中占用大量的内存；
+
+## 10.三级缓存的实现
 
 
