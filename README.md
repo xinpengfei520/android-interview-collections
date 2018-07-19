@@ -38,6 +38,8 @@ Android 面试知识收集及整理，主要包含下面几部分：Java 基础�
 
 [blog_backups](https://github.com/crazyandcoder/blog_backups)
 
+[Java-Interview](https://github.com/crossoverJie/Java-Interview)
+
 ## License
 
 android-interview-collections project is [MIT licensed](https://github.com/xinpengfei520/android-interview-collections/blob/master/LICENSE).
